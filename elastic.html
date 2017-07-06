@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style type="text/css">
+			*{
+				padding: 0px;
+				margin: 0px;
+			}
+			body{
+				background: #C3E8FF;
+			}
+			.wrap{
+				width: 500px;
+				height: 300px;
+				background: #F9E485;
+				position: absolute;
+				left: 300px;
+				top: 100px;
+				min-width: 200px;
+				min-height: 230px;
+				box-sizing: border-box;
+				box-shadow: 2px 2px 5px #000;
+				border-radius: 10px;
+				overflow: hidden;
+			}
+			.wrap div{
+				height: 30px;
+				border-bottom: 2px show #666666;
+				background: #5A8EDC;
+				text-indent: 1em;
+				line-height: 30px;
+				color: orange;
+				user-select:none;
+			}
+			.wrap div:hover{
+				cursor:move;
+			}
+			.left,.right{
+				display: block;
+				width: 2px;
+				height: 100%;
+				position: absolute;
+				top: 0px;
+				cursor: e-resize;
+			}
+			.right{
+				right: 0px;
+			}
+			.up,.down{
+				display: block;
+				width: 100%;
+				height: 2px;
+				position: absolute;
+				left: 0px;
+				cursor: n-resize;
+			}
+			.up{
+				top: 0px;
+			}
+			.down{
+				bottom: 0px;
+			}
+			.leftUp,.leftDown{
+				width: 10px;
+				height: 10px;
+				position: absolute;
+				left: 0px;
+				/*background: yellow;*/
+				z-index: 10;
+			}
+			.leftUp,.rightUp{
+				top: 0px;
+			}
+			.leftDown:hover,.rightUp:hover{
+				cursor: ne-resize;
+			}
+			.leftUp,.rightDown{
+				cursor: nw-resize;
+			}
+			.leftDown,.rightDown{
+				bottom: 0px
+			}
+			.rightUp,.rightDown{
+				width: 10px;
+				height: 10px;
+				position: absolute;
+				right: 0px;
+				/*background: yellow;*/
+				z-index: 10;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<div>Window窗口</div>
+			<!--左-->
+			<span class="left"></span>
+			<!--上-->
+			<span class="up"></span>
+			<!--右-->
+			<span class="right"></span>
+			<!--下-->
+			<span class="down"></span>
+			<!--左上-->
+			<span class="leftUp"></span>
+			<!--右上-->
+			<span class="rightUp"></span>
+			<!--右下-->
+			<span class="rightDown"></span>
+			<!--左下-->
+			<span class="leftDown"></span>
+			<p id="info"></p>
+		</div>
+	</body>
+	<script type="text/javascript">
+	var wrap = document.querySelector('.wrap');
+	var drap = document.querySelector('.wrap div');
+	var left = document.querySelector('.left');
+	var right = document.querySelector('.right');
+	var up = document.querySelector('.up');
+	var down = document.querySelector('.down');
+	var leftUp = document.querySelector('.leftUp');
+	var rightUp = document.querySelector('.rightUp');
+	var rightDown = document.querySelector('.rightDown');
+	var leftDown = document.querySelector('.leftDown');
+	var speedX = 0;
+	var speedY = 0;
+	var lastX = 0;
+	var lastY = 0;
+	var elasticTimer = null;
+
+
+
+	function mouseup(){
+		document.onmouseup = function(){
+			document.onmousemove = null;
+			document.onmouseup = null;
+		}
+	}
+	//拖拽
+	drap.onmousedown = function(ev){
+		var oEvent = ev || event;
+		var disX = oEvent.clientX - wrap.offsetLeft;
+		var disY = oEvent.clientY - wrap.offsetTop;
+		
+		document.onmousemove = function(ev){
+			var oEvent = ev || event;
+			var l = oEvent.clientX - disX ;
+			var t = oEvent.clientY - disY;
+			if (l < 0) {
+				l = 0;
+			}
+			if (t < 0) {
+				t = 0;
+			}
+			// if (oEvent.clientY < -10) {
+			// 	wrap.style.width = window.innerWidth+'px';
+			// 	wrap.style.height = window.innerHeight+'px';
+			// }
+			if (l > window.innerWidth - wrap.offsetWidth) {
+				l = window.innerWidth - wrap.offsetWidth;
+			}
+			if (t > window.innerHeight - wrap.offsetHeight) {
+				t = window.innerHeight - wrap.offsetHeight;
+			}
+			wrap.style.left =l + 'px';
+			wrap.style.top = t + 'px';
+			speedX = l - lastX;
+			speedY = t - lastY;
+			lastX = l;
+			lastY = t;
+			//document.title = speedX+'|'+speedY;
+		}
+		document.onmouseup = function(){
+			document.onmousemove = null;
+			document.onmouseup = null;
+			elastic();
+		}
+		clearInterval(elasticTimer);
+		return false;
+	}
+	
+	function elastic(){
+		clearInterval(elasticTimer);
+		var sp = 0.8;
+		var L = 0;
+		var T = 0;
+		elasticTimer = setInterval(function(){
+			speedY+=3;
+			L = wrap.offsetLeft + speedX;
+			T = wrap.offsetTop + speedY;
+			if (L < 0) {
+				L = 0;
+				speedX*=-sp;
+			}
+			if (L > window.innerWidth - wrap.offsetWidth) {
+				L = window.innerWidth - wrap.offsetWidth;
+				speedX*=-sp;
+			}
+			if (T < 0) {
+				T = 0;
+				speedX*=sp;
+				speedY*=-sp;
+			}
+			if (T > window.innerHeight - wrap.offsetHeight) {
+				T = window.innerHeight - wrap.offsetHeight;
+				speedX*=sp;
+				speedY*=-sp;
+			}
+			if(Math.abs(speedX) < 1) {
+				speedX = 0;
+			}
+			if(Math.abs(speedY) < 1) {
+				speedY = 0;
+			}
+			if (speedX == 0 && speedY == 0 && T == window.innerHeight-wrap.offsetHeight) {
+				clearInterval(elasticTimer);
+			}
+			wrap.style.left = L + 'px';
+			wrap.style.top = T + 'px';
+		},30);
+	}
+	</script>
+</html>
